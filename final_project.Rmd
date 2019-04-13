@@ -18,33 +18,28 @@ library(kableExtra)
 library(tidyverse)
 ```
 
-```{r data, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
+```{r data, echo=FALSE, message=FALSE, warning=FALSE}
 #How the Public Defines Terrorism Replication Code
-#Connor Huff & Josh Kertzer
-#Last modified: June 1, 2017
 
-## This R file contains the code necessary to replicate the analysis in the main text Its companion R file ("Terrorism_Replication_2.R") replicates the analysis in the appendix.
-# All of the following analyses were carried out using R version 3.1.1 on a 2.5 GHz Intel Core i5 iMac running OS X El Capitan 10.11.6
-
-
-##The script which follows is comprised of two components. Component 1 will read in the survey data from qualtrics and then clean the data to prepare for analyses. Component 2 will replicate the analyses in the main text. 
-#To save time in replicating, if you don't want to build the dataframe yourself, you can start on line 603, which loads "Terrorism.RDATA"
-
-
-#Loading a RData object containing all of the survey data used in the manuscript and supplementary appendix. 
-#setwd() #Set dataframe to path of choice
+#Loading an RData object containing all of the survey data used in the manuscript and supplementary appendix. 
 
 load("data_files/Final_Survey_Data.RDATA")
 #loading data
 load("data_files/Terrorism.RDATA")
 
+# Notes: This replicates most figures and table 2. Need some revisions for formatting 
+
 ```
 
+# Abstract 
+
+In "How the Public Defines Terrorism," Connor Huff and Joshua Kertzer explore one of the most pressing and controversial issues in International Relations--terrorism. The New Oxford American Dictionary defines terrorism as "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims." Acts of terrorism occur on large and small scales and can be perpetrated by any individual. Policymakers and political scientists alike must continually explore and adapt their understanding of terrorism as new forms of violence develop. In this paper, Huff and Kertzer investigate how the public understands terrorism. They combine analyses of the media's impact on public perception and results from an experiment that asks participants to judge events based on various characteristics to determine how ordinary people define terrorism. 
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # Figure 1
-# Probably dont need this; just vignette
+## NOTE: Probably dont need this; just vignette
+# But, plotmat2 is necessary for figure replication down the road.
 #Converting survey weights to numeric
 dat2$webal2 <- as.numeric(dat2$webal2)
 
