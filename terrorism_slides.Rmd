@@ -111,7 +111,7 @@ include_graphics("fig3a.pdf")
 class: center
 # Target of Incident
 .left[
-- Nore does the target of the incident.]
+- Nor does the target of the incident.]
 
 ```{r echo=FALSE, warning=FALSE}
 include_graphics("fig3b.pdf")
@@ -119,7 +119,7 @@ include_graphics("fig3b.pdf")
 
 ---
 class: center
-# The Political Purposiveness of the Perpetrator
+# Political Purposiveness of the Perpetrator
 .left[
 - Two main themes: acts carried out by collectives are more likely to be considered terrorism than those carried out by individuals and acts carried out by individuals with a history of mentall illness are less likely to be seen as terrorism.]
 
@@ -131,7 +131,7 @@ include_graphics("fig4.pdf")
 class: center
 # Social Categorization Effects
 .left[
-- Details regarding social categorization of the perpetrator of an incident impact how the incident is perceived.
+- Details regarding social categorization of the perpetrator slightly impact how the incident is perceived.
 ]
 
 ```{r echo=FALSE, warning=FALSE}
@@ -149,18 +149,22 @@ include_graphics("fig6.pdf")
 ```
 
 ---
+class: center
 # Applications
 
+.left[
 - Mapping onto Real-World Events
 
 - Demonstrating Framing Effects
 
 - Analyzing Media Coverage 
-
+]
 ---
+class: center
+
 
 # Conclusion
-
+.left[
 - Terrorism vs. "small" forms of violence
 
 - Objective and subjective criteria have fairly equal impacts on the public's understanding of acts of terrorism.
@@ -168,10 +172,14 @@ include_graphics("fig6.pdf")
 - The media has a significant role in influencing how the public classifies violent events. 
 
 - Terrorism is not exclusive to targeting civilians, nor does it always entail political motivations. 
-
+]
 ---
 
+class: center
+
+
 # Possible Extensions
+.left[
 - Examine competing media frames
 
 - Additional analysis of media coverage, specifically pertaining to ratings and coverage of perpetrators 
@@ -179,3 +187,4 @@ include_graphics("fig6.pdf")
 - Explore political frames
 
 - Comparison with foreign public perceptions
+]
