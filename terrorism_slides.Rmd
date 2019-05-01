@@ -1,0 +1,181 @@
+---
+title: "_'How the Public Defines Terrorism'_ <br/> by Connor Huff and Joshua Kertzer"
+author: _Keeley MacAfee_
+date: "4/29/2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: xaringan-themer.css
+---
+
+```{r setup, include=FALSE}
+library(xaringanthemer)
+library(knitr)
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringan-themer, include = FALSE}
+mono_light(
+  base_color = "#23395b",
+  header_font_google = google_font("Arial"),
+  text_font_google   = google_font("Montserrat", "300", "300i"),
+  code_font_google   = google_font("Droid Mono")
+)
+```
+
+class: center
+# What is terrorism?
+.left[
+- According to the New Oxford American Dictionary, terrorism is "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims."
+
+- In reality, the definition is up for debate. Academics, policy makers, and members of the public disagree about what counts as terrorism. 
+]
+---
+
+class: center
+# Why does the definition of terrorism matter?
+
+.left[
+- "If the responses of ordinary citizens constitute a central causal mechanism through which terrorrism operates, it logically follows that understanding what ordinary citizens think terrorism is is a crucial prerequisite to understanding how they react to it" (Huff and Kertzer 55). 
+  
+  - Media coverage impacts public opinion. Public opinion impacts policy.  
+
+- Lack of agreement on definition leaves ambiguity in decisions regarding prosecution, sanctions, and treaties for combating terrorism.
+  
+  - Terrorism is understood as an exceptional act mandating an exceptional response. 
+
+- The definition of terrorism and the image of the terrorist impact people's behavior towards one another as well as their preferences on laws, elections, and policies.
+  ]
+---
+
+class: center 
+
+# A Typology for Classifying Terrorism
+.left[
+Huff and Kertzer use two sets of criteria:
+1. Objective criteria
+  - Severity of violence, target, location
+  
+2. Subjective criteria
+  - Motivation, who the perpetrator is
+  
+- Time between the occurrence of the incident and the release of details surrounding it cause issues of availability and public perception. 
+
+- Seeking to directly assess how ordinary people define terrorism by examining the perception of different attributes of an incident.
+]
+---
+class: center
+# Methods
+
+.left[
+
+- Present participants with a series of incidents with randomly generated features then ask if they think it is terrorism or not. 
+
+- Manipulate seven attributes of an incident: tactics, casualties, target, location, actor, categorization of actor, and motivation. 
+
+  - _Example_: The incident: a shooting. The shooting occurred at a church in a foreign democracy with a history of human rights violations. There were two individuals killed in the shooting. The shooting was carried out by a Muslim individual with a history of mental illness. News reports suggest the individual had been in an ongoing personal dispute with one of the targets.
+  
+- Used Amazon's Mechanical Turk (MTurk) to field the survey in August 2015 and reached 1,400 respondents. _Note:_ Since 1,400 participants respond to seven incidents each, the analyses are based on 9,800 randomly generated scenarios. 
+]
+
+---
+class: center
+# The Effect of Tactics
+.left[
+- Type of tactic used plays a central role in whether an incident is perceived as terrorism or not.]
+
+```{r echo=FALSE, warning=FALSE}
+include_graphics("fig2a.pdf")
+```
+
+---
+class: center
+# The Effect of Casualties
+.left[
+- The number of casualties, or severity of the violence, is less central.]
+
+```{r echo=FALSE, warning=FALSE, fig.pos="p"}
+include_graphics("fig2b.pdf")
+```
+
+---
+class: center
+# Location of Incident
+.left[
+- Location does not generally have an effect on whether an incident is classified as terrorism or not.] 
+
+```{r echo=FALSE, warning=FALSE}
+include_graphics("fig3a.pdf")
+```
+---
+class: center
+# Target of Incident
+.left[
+- Nore does the target of the incident.]
+
+```{r echo=FALSE, warning=FALSE}
+include_graphics("fig3b.pdf")
+```
+
+---
+class: center
+# The Political Purposiveness of the Perpetrator
+.left[
+- Two main themes: acts carried out by collectives are more likely to be considered terrorism than those carried out by individuals and acts carried out by individuals with a history of mentall illness are less likely to be seen as terrorism.]
+
+```{r echo=FALSE, warning=FALSE}
+include_graphics("fig4.pdf")
+```
+
+---
+class: center
+# Social Categorization Effects
+.left[
+- Details regarding social categorization of the perpetrator of an incident impact how the incident is perceived.
+]
+
+```{r echo=FALSE, warning=FALSE}
+include_graphics("fig5.pdf")
+```
+
+---
+class: center
+# Motive Attribution Effects
+.left[
+- Incidents driven, in some way, by political motivations are increasingly more likely to be classified as terrorism.
+]
+```{r echo=FALSE, warning=FALSE}
+include_graphics("fig6.pdf")
+```
+
+---
+# Applications
+
+- Mapping onto Real-World Events
+
+- Demonstrating Framing Effects
+
+- Analyzing Media Coverage 
+
+---
+
+# Conclusion
+
+- Terrorism vs. "small" forms of violence
+
+- Objective and subjective criteria have fairly equal impacts on the public's understanding of acts of terrorism.
+
+- The media has a significant role in influencing how the public classifies violent events. 
+
+- Terrorism is not exclusive to targeting civilians, nor does it always entail political motivations. 
+
+---
+
+# Possible Extensions
+- Examine competing media frames
+
+- Additional analysis of media coverage, specifically pertaining to ratings and coverage of perpetrators 
+
+- Explore political frames
+
+- Comparison with foreign public perceptions
