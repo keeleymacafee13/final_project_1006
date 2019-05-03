@@ -4,6 +4,11 @@ author: "Keeley MacAfee"
 date: "4/8/2019"
 output: pdf_document
 ---
+# Abstract 
+
+In "How the Public Defines Terrorism," Connor Huff and Joshua Kertzer explore one of the most pressing and controversial issues in International Relations--terrorism. The New Oxford American Dictionary defines terrorism as "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims," but details surrounding acts of violence are nuanced, thus leaving substantial room for subjective interpretations of what is terrorism and what is not. Acts of terrorism occur on both large and small scales and can be perpetrated by any individual or group, yet the public does not always see it this way. In this paper, Huff and Kertzer investigate how the public understands terrorism through manipulating various characteristics of an act of violence, such as the method and the motivation. They combine analyses of the media's impact on public perception and results from a survey experiment that asks participants to judge events based on various characteristics to determine how ordinary people define terrorism. 
+
+\pagebreak
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -21,64 +26,79 @@ library(tidyverse)
 ```
 
 
+
 ```{r data, echo=FALSE, message=FALSE, warning=FALSE}
 #How the Public Defines Terrorism Replication Code
 
-#Loading RData object containing all of the survey data used in the manuscript and supplementary appendix. 
-#Loading Rdata and csv files. 
+#Loading RData object containing all of the survey data used in the manuscript and supplementary appendix.
+#Loading all Rdata and csv files. 
 load("data_files/Final_Survey_Data.RDATA")
 load("data_files/Terrorism.RDATA")
 load("data_files/full.RDATA")
 load("data_files/pred.RDATA")
 load("data_files/SVM Weighted.RData")
 load("data_files/SVM.RDATA")
-
 lex_nex <- read_csv("data_files/LexNex_Year.csv")
 terrorism_class <- read_csv("data_files/Terror_Classifications.csv")
 search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 
 ```
 
-```{r conversion, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-as.numeric(dat2$Education)
-as.numeric(dat2$Ideorate)
-```
-
-# Abstract 
-
-In "How the Public Defines Terrorism," Connor Huff and Joshua Kertzer explore one of the most pressing and controversial issues in International Relations--terrorism. The New Oxford American Dictionary defines terrorism as "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims," but details surrounding acts of violence are nuanced, thus leaving substantial room for subjective interpretations of what is terrorism and what is not. Acts of terrorism occur on both large and small scales and can be perpetrated by any individual or group, yet the public does not always see it this way. In this paper, Huff and Kertzer investigate how the public understands terrorism through manipulating various characteristics of an act of violence, such as the method and the motivation. They combine analyses of the media's impact on public perception and results from a survey experiment that asks participants to judge events based on various characteristics to determine how ordinary people define terrorism. 
-
-\pagebreak
-
 
 # Extension
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r regressions, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+# I am beginning with my extension because I put all of the authors' figures in the appendix.
+# The purpose of this article is to examine how elements of a violent act cause people to respond. 
+# Because the data includes some demographic information about the respondents, I want to look at how
+# elements of a person prompt them to respond in certain ways to violent acts. 
 
+
+# In the author's main analysis code, they change the response weighting variable to be numeric. 
+# I figured since I want to run a regression for my extension that it would make sense to do the same 
+# for the variables of interest. 
+as.numeric(dat2$Education)
+as.numeric(dat2$Ideorate)
+
+
+# In particular, I want to look at ideology and education. 
+# I run regressions with the terror binary (1 = Yes, terrorism, 0 = No, not terrrorism) as the 
+# dependent variable using ideology rating (1-7: extremely conservative-extremely liberal)
+# and education (1-8: least to most educated) in separate models. 
+# The goal of these models are twofold: 1. show which categories for each characteristic are significant
+# predictors of classifying events as terrorism or not and 2. provide a basis for which I can derive
+# probabilities that each group will define an event as terrorism. 
 ideo_reg <- glm(TerrorBinary ~ Ideorate, data = dat2)
 summary(ideo_reg)
 
 education_reg <- glm(TerrorBinary ~ Education, data = dat2)
 summary(education_reg)
 
-# Found this at https://sebastiansauer.github.io/convert_logit2prob/.
+# I found this function/step by step process at https://sebastiansauer.github.io/convert_logit2prob/.
+# Very helpful resource!!
 logit2prob <-function(logit){
   odds <- exp(logit)
   prob <- odds/(1 + odds)
   return(prob)
 }
 
+# Once the function is created, I know plug in the models, which now "de-logarithmizes," converts to odds, then converts to probability. (Again, gathered that information from the source above).
 id <- logit2prob(coef(ideo_reg))
 edu <- logit2prob(coef(education_reg))
 ```
 
 # Ideology
 ```{r ideology, warning=FALSE, echo=FALSE, results='asis'}
+# I struggled with deciding how I wanted to present my results. 
+# One major issue I'm having is that it seems that one entire category either disappears or becomes
+# the constant value in the regression's output? Not sure how to fix this, but it initially threw
+# off my labeling. 
 stargazer(ideo_reg,header = FALSE, dep.var.labels = c("Terror Binary"), title = "Title")
 ```
 
 # Education
 ```{r education, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
+# Having the same issue with the constant displaying in the table that I mentioned with ideology. 
 stargazer(education_reg, header = FALSE, dep.var.labels = c("Terror Binary"))
 ```
 
@@ -86,8 +106,16 @@ stargazer(education_reg, header = FALSE, dep.var.labels = c("Terror Binary"))
 # Appendix
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, cache=TRUE}
-# Figure 1?
-## NOTE: Probably dont need this; just vignette
+# In terms of replicating Huff and Kertzer's work, I did pretty much all of the figures and table 2. 
+# I intentionally did not replicate Figure 1, Table 1, or Figure 7. 
+# Figure 1 is simply an example vignette with a description of the type of scenario a 
+# respondent would be presented with (I can type this up myself).
+# Table 1 lists the conjoint treatments by category (the characteristics that are being manipulated). 
+# Finally, Figure 7 is a part of the author's applications. Initially I did not intend to replicate 
+# any figures in the application section. However, Table 2 deals with the probability of classification
+# which I am interested in for my extension. Figure 7, on the other hand, deals with the impact of media
+# reporting, which is not as directly related to my extension. 
+
 # But, plotmat2 is necessary for figure replication down the road.
 # Notes: The following code replicates most figures and table 2. Need some revisions for
 # formatting 
@@ -371,7 +399,10 @@ for (i in 1:nrow(events)){
   events[i,] <- c(rep(0, 39), rep(NA,(ncol(events)-39)))
 }
 
-#Now fill the main effect results for each event (Note: this is drawn from Terror_Classifications_Reordered_10182015.csv; these are correct, even though the column ordering is different) 
+# Now fill the main effect results for each event (Note: this is drawn from Terror_Classifications_Reordered_10182015.csv; these are correct, even though the column ordering is different)
+# I feel like there would have been an easier way to do/code this. For the sake of time,
+# I will not try to figur out what that way is, but it seems like hard coding (?) wasn't necessarily
+# the best solution?
 events[,1] <- rep(1,39) #Intercept
 events[,2] <- c(1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) #Bombing
 events[,3] <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) #Hostage-taking
@@ -415,9 +446,13 @@ events[,39] <- c(1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 
 
 #Now change variable names to avoid duplication
 probs.data$Description <- gsub("Actor_individual.with.a.history.of.mental.illness","Actor_with.a.history.of.mental.illness",probs.data$Description)
+
 probs.data$Description <- gsub("Actor_organization.with.ties.to.a.foreign.government","Actor_with.ties.to.a.foreign.government",probs.data$Description)
+
 probs.data$Description <- gsub("Actor_organization.with.ties.to.the.United.States","Actor_with.ties.to.the.United.States",probs.data$Description)
+
 probs.data$Description <- gsub("Location_a.foreign.democracy.with.a.history.of.human.rights.violations","Location_a.foreign.dem.with.a.history.of.human.rights.violations",probs.data$Description)
+
 probs.data$Description <- gsub("Location_a.foreign.dictatorship.with.a.history.of.human.rights.violations","Location_a.foreign.dict.with.a.history.of.human.rights.violations",probs.data$Description)
 
 
