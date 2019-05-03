@@ -7,6 +7,7 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# Load libraries.
 library(car)
 library(lubridate)
 library(snow)
@@ -15,38 +16,88 @@ library(tm)
 library(stringr)
 library(xtable)
 library(kableExtra)
+library(stargazer)
 library(tidyverse)
 ```
+
 
 ```{r data, echo=FALSE, message=FALSE, warning=FALSE}
 #How the Public Defines Terrorism Replication Code
 
-#Loading an RData object containing all of the survey data used in the manuscript and supplementary appendix. 
-
+#Loading RData object containing all of the survey data used in the manuscript and supplementary appendix. 
+#Loading Rdata and csv files. 
 load("data_files/Final_Survey_Data.RDATA")
-#loading data
 load("data_files/Terrorism.RDATA")
+load("data_files/full.RDATA")
+load("data_files/pred.RDATA")
+load("data_files/SVM Weighted.RData")
+load("data_files/SVM.RDATA")
 
-# Notes: This replicates most figures and table 2. Need some revisions for formatting 
+lex_nex <- read_csv("data_files/LexNex_Year.csv")
+terrorism_class <- read_csv("data_files/Terror_Classifications.csv")
+search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 
+```
+
+```{r conversion, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+as.numeric(dat2$Education)
+as.numeric(dat2$Ideorate)
 ```
 
 # Abstract 
 
-In "How the Public Defines Terrorism," Connor Huff and Joshua Kertzer explore one of the most pressing and controversial issues in International Relations--terrorism. The New Oxford American Dictionary defines terrorism as "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims." Acts of terrorism occur on large and small scales and can be perpetrated by any individual. Policymakers and political scientists alike must continually explore and adapt their understanding of terrorism as new forms of violence develop. In this paper, Huff and Kertzer investigate how the public understands terrorism. They combine analyses of the media's impact on public perception and results from an experiment that asks participants to judge events based on various characteristics to determine how ordinary people define terrorism. 
+In "How the Public Defines Terrorism," Connor Huff and Joshua Kertzer explore one of the most pressing and controversial issues in International Relations--terrorism. The New Oxford American Dictionary defines terrorism as "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims," but details surrounding acts of violence are nuanced, thus leaving substantial room for subjective interpretations of what is terrorism and what is not. Acts of terrorism occur on both large and small scales and can be perpetrated by any individual or group, yet the public does not always see it this way. In this paper, Huff and Kertzer investigate how the public understands terrorism through manipulating various characteristics of an act of violence, such as the method and the motivation. They combine analyses of the media's impact on public perception and results from a survey experiment that asks participants to judge events based on various characteristics to determine how ordinary people define terrorism. 
+
+\pagebreak
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
-# Figure 1
+# Extension
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
+ideo_reg <- glm(TerrorBinary ~ Ideorate, data = dat2)
+summary(ideo_reg)
+
+education_reg <- glm(TerrorBinary ~ Education, data = dat2)
+summary(education_reg)
+
+# Found this at https://sebastiansauer.github.io/convert_logit2prob/.
+logit2prob <-function(logit){
+  odds <- exp(logit)
+  prob <- odds/(1 + odds)
+  return(prob)
+}
+
+id <- logit2prob(coef(ideo_reg))
+edu <- logit2prob(coef(education_reg))
+```
+
+# Ideology
+```{r ideology, warning=FALSE, echo=FALSE, results='asis'}
+stargazer(ideo_reg,header = FALSE, dep.var.labels = c("Terror Binary"), title = "Title")
+```
+
+# Education
+```{r education, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
+stargazer(education_reg, header = FALSE, dep.var.labels = c("Terror Binary"))
+```
+
+
+# Appendix
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE, cache=TRUE}
+# Figure 1?
 ## NOTE: Probably dont need this; just vignette
 # But, plotmat2 is necessary for figure replication down the road.
+# Notes: The following code replicates most figures and table 2. Need some revisions for
+# formatting 
 #Converting survey weights to numeric
 dat2$webal2 <- as.numeric(dat2$webal2)
 
 
-##Estimating the Model for Main Analyses
+## Estimating the Model for Main Analyses
 
-#Do parallel processing - speeds things up
+# Do parallel processing - speeds things up
 cl <- makeCluster(8,"SOCK")
 
 ##Function to cluster bootstrap standard errors -- will be used for all analyses
@@ -89,7 +140,10 @@ plot.mat2b <- rbind(rep(0,5), plot.mat2[1:3,], rep(0,5), plot.mat2[4:6,], rep(0,
 #making the label for the plot
 textLabTactic <- c("Protest", "Hostage Taking", "Shooting", "Bombing")
 
+
 par(oma=c(0,1,0,0), mar=c(4,0,1,0)) #Old margins: mar=c(5.1,1.1,4.1,0)
+par(las = 1)
+par(mar = c(5.1, 4.1, .5, .5))
 plot(plot.mat2b[1:length(textLabTactic),1], length(textLabTactic):1, type="n", axes=FALSE, xlab="Average marginal component effect (AMCE)", ylab="",xlim=c(-0.2,0.8))
 for (i in 1:length(textLabTactic)){
   points(plot.mat2b[i,1], length(textLabTactic)-(i-1), pch=16)
@@ -108,7 +162,9 @@ axis(1)
 textLabFigure1B <- c("No Casualties", "One Casualty", "Two Casualties", "Ten Casualties")
 
 ##Casualties Plot
-par(oma=c(0,1,0,0), mar=c(4,0,1,0)) 
+#par(oma=c(0,1,0,0), mar=c(4,0,1,0)) 
+par(las = 0.5)
+par(mar = c(4, 4, .5, .5))
 plot(plot.mat2b[1:length(textLabFigure1B),1], length(textLabFigure1B):1, type="n", axes=FALSE, xlab="Average marginal component effect (AMCE)", ylab="",xlim=c(-0.2,0.8))
 points(plot.mat2b[5,1], 4, pch=16) 
 points(plot.mat2b[6,1], 3, pch=16) 
@@ -423,346 +479,4 @@ logit(sanbernadino4 %*% as.numeric(as.character(probs.data$Coefficient))) #30.6%
 
 ```
 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# #APPLICATION III: ARTICLES MENTIONING TERRORISM AND DEBATE
-# ###This script reads in batches of 500 articles downloaded from Lexis Nexis about the shootings at Charleston and Forthood respectively
-# ##The text files are saved in two different directories: one for Charleston and the other for Fort Hood. The script reads in all these text files.
-# #Because of terms of use agreements, the raw text from the Lexis Nexis articles are not included in this replication dataset, and users should download the articles from Lexis Nexis themselves; see the detailed description in Appendix §6.
-# 
-# ##Read in the respective files
-# 
-# ##Charlestion
-# c.files <- list.files()
-# article.list.charleston <- list()
-# 
-# for(i in 1:length(c.files)){
-#  article.list.charleston[[i]] <- scan(eval(c.files[i]), what="character", sep="\n")
-# }
-# 
-# article.list.charleston <- unlist(article.list.charleston)
-# 
-# ##Fort Hood
-# fh.files <- list.files()
-# 
-# article.list.forthood <- list()
-# for(i in 1:length(fh.files)){
-#  article.list.forthood[[i]] <- scan(eval(fh.files[i]), what="character", sep="\n")
-# }
-# 
-# article.list.forthood <- unlist(article.list.forthood)
-# 
-# ##We then parse the articles for Charleston and Forthood, using the article number indexing for each article to separate the long character string into unique newspaper articles above
-# 
-# ##Charleston Section
-# 
-# ##Parsing the text file into unique articles
-# articles.charleston <- list()
-# 
-# ##index for the start of each unique article
-# a.charleston <- which(grepl("[[:digit:]]+ of 2297 DOCUMENTS", article.list.charleston))
-# 
-# ##append the length of the article.id so that the last article will go the end (since it is not g oing to be indexed as part of the above code)
-# article.id.charleston <- c(a.charleston, length(article.list.charleston))
-# 
-# ##for loop grabbing each unique article
-# for(i in 1:(length(article.id.charleston)-1)){ ##indexing length(article.id)-1 so that for loop doesn't look for a number that doesn't exist
-#  articles.charleston[[i]] <- article.list.charleston[article.id.charleston[i]:(article.id.charleston[i+1]-1)]
-# }
-# 
-# ##Fort Hood Section
-# 
-# ##Parsing the text file into unique articles
-# articles.forthood <- list()
-# 
-# ##index for the start of each unique article
-# a.forthood <- which(grepl("[[:digit:]]+ of 2809 DOCUMENTS", article.list.forthood))
-# 
-# ##append the length of the article.id so that the last article will go the end (since it is not g oing to be indexed as part of the above code)
-# article.id.forthood <- c(a.forthood, length(article.list.forthood))
-# 
-# ##for loop grabbing each unique article
-# for(i in 1:(length(article.id.forthood)-1)){ ##indexing length(article.id)-1 so that for loop doesn't look for a number that doesn't exist
-#  articles.forthood[[i]] <- article.list.forthood[article.id.forthood[i]:(article.id.forthood[i+1]-1)]
-# }
-# 
-# 
-# ##Subsetting all articles to be between a time window of the incident. This section of the script extracts the dates for each newspaper article.
-# 
-# months <- c("January",
-#            "February",
-#            "March",
-#            "April",
-#            "May",
-#            "June",
-#            "July",
-#            "August",
-#            "September",
-#            "October",
-#            "November",
-#            "December")
-# 
-# pattern <- paste(months, collapse = "|")
-# 
-# 
-# ##Charleston Section
-# 
-# 
-# dates.vec.charleston <- list()
-# ##getting all the dates for the articles. The output of this for loop is a list with dates as the first element. Some elements have trailing strings which will be parsed in the next for loop.
-# for(i in 1:length(articles.charleston)){
-#  d <- NULL
-#  d <- which(grepl(pattern, articles.charleston[[i]][1:20]))  ##searching for months within the first 20 lines
-#  dates.vec.charleston[[i]] <- articles.charleston[[i]][d]
-# }
-# 
-# 
-# ##Forthood Section
-# 
-# dates.vec.forthood <- list()
-# ##getting all the dates for the articles. The output of this for loop is a last with dates as the first element. Some elements have trailing strings which will be parsed in the next for loop.
-# for(i in 1:length(articles.forthood)){
-#  d <- NULL
-#  d <- which(grepl(pattern, articles.forthood[[i]][1:20]))  ##searching for months within the first 20 lines
-#  dates.vec.forthood[[i]] <- articles.forthood[[i]][d]
-# }
-# 
-# 
-# ##Will split the strings on the year, and then grab the years using the string match
-# years <- 1970:2016 ##possible date ranges in lexis nexis search
-# years <- as.character(years)
-# all.years <- paste(years, collapse="|") ##collapsing with or statement so can search through
-# 
-# ##Charleston Section
-# 
-# ##for loop splitting the dates
-# dates.clean.charleston <- NULL
-# for(i in 1:length(dates.vec.charleston)){
-#  a <- strsplit(dates.vec.charleston[[i]][1], split=all.years)[[1]][1] ##splitting the string on year
-#  z <- str_trim(a) ##trimming extra whitespace
-#  b <- str_match(string=dates.vec.charleston[[i]][1], pattern=all.years) ##grabbing the year which was split on (strsplit does not keep what it splits on)
-#  dates.clean.charleston[i] <- paste(z, b, sep=" ") ##pasting the month and day with the year
-# }
-# 
-# 
-# ##Forthood Section
-# 
-# ##for loop splitting the dates
-# dates.clean.forthood <- NULL
-# for(i in 1:length(dates.vec.forthood)){
-#  a <- strsplit(dates.vec.forthood[[i]][1], split=all.years)[[1]][1] ##splitting the string on year
-#  z <- str_trim(a) ##trimming extra whitespace
-#  b <- str_match(string=dates.vec.forthood[[i]][1], pattern=all.years) ##grabbing the year which was split on (strsplit does not keep what it splits on)
-#  dates.clean.forthood[i] <- paste(z, b, sep=" ") ##pasting the month and day with the year
-# }
-# 
-# 
-# 
-# ##converting to a common format
-# dates.w.time.charleston <- paste(dates.clean.charleston, "12:39")
-# new.date.charleston <- as.Date(dates.w.time.charleston, format = "%B %d, %Y %H:%M")
-# 
-# 
-# ##converting to a common format that will be easier to parse
-# dates.w.time.forthood <- paste(dates.clean.forthood, "12:39")
-# new.date.forthood <- as.Date(dates.w.time.forthood, format = "%B %d, %Y %H:%M")
-# 
-# 
-# ##constraining dates to be within a particular date wondow (note the strict equality)
-# before.attack.charleston <- "2015-06-16" ##need day before attack due to inequality below
-# upper.date.charleston <- "2015-07-02" ##specify window and go one day after
-# close.dates.ind.charleston <- before.attack.charleston < new.date.charleston & new.date.charleston < upper.date.charleston
-# 
-# 
-# ##constraining dates to be within a particular date wondow (note the strict equality)
-# before.attack.forthood <- "2009-11-04" ##need day before attack due to inequality below (note in the year-month-day format)
-# upper.date.forthood <- "2009-11-19" ##specify window and go one day after  (currently set for a month and a day)
-# close.dates.ind.forthood <- before.attack.forthood < new.date.forthood & new.date.forthood < upper.date.forthood
-# 
-# 
-# ##Charleston Section
-# 
-# ##subsetting to only articles within the two week date window
-# close.articles.charleston <-articles.charleston[close.dates.ind.charleston]
-# 
-# 
-# ##subsetting to only dates within the two week date window (will use this in the plots later)
-# close.dates.charleston <- new.date.charleston[close.dates.ind.charleston]
-# 
-# 
-# 
-# ##Forthood Section
-# 
-# ##subsetting to only articles within the two week date window
-# close.articles.forthood <-articles.forthood[close.dates.ind.forthood]
-# 
-# 
-# ##subsetting to only dates within the two week date window (will use this in the plots later)
-# close.dates.forthood <- new.date.forthood[close.dates.ind.forthood]
-# 
-# ##eliminating articles and dates for which the date is unspecified (don't need to do this for Charleston since there aren't any)
-# close.articles.forthood.clean <- close.articles.forthood[-which(is.na(close.dates.forthood))]
-# close.dates.forthood.clean <- close.dates.forthood[-which(is.na(close.dates.forthood))]
-# 
-# 
-# 
-# 
-# ##Charleston
-# close.dates.charleston.clean <- close.dates.charleston
-# close.articles.charleston.clean <- close.articles.charleston
-# c.data <- close.articles.charleston.clean
-# 
-# 
-# ##cleaning. Will have a standardized format where every word is separated by a single splace
-# clean.c.data <- list()
-# 
-# ##for loop cleaning the text
-# for(i in 1:length(c.data)){
-#  clean.c.data[[i]] <- gsub("-", " ", c.data[[i]])
-#  clean.c.data[[i]] <- paste(clean.c.data[[i]], collapse=c("\n"))
-#  clean.c.data[[i]] <- removePunctuation(clean.c.data[[i]])
-#  clean.c.data[[i]] <- gsub("[\r\n]", " ", clean.c.data[[i]])
-#  clean.c.data[[i]] <- gsub("\\s+", " ", clean.c.data[[i]])
-# 
-# }
-# 
-# ##for loop creating a list where each element is a word
-# c.split.text <- list()
-# for(i in 1:length(clean.c.data)){
-#  c.split.text[[i]] <- unlist(strsplit(clean.c.data[[i]], " "))
-# }
-# 
-# 
-# ##Forthood Section
-# fh.data <- close.articles.forthood.clean
-# 
-# ##cleaning. Goal is to have a standardized format where every word is separated by a single splace
-# clean.fh.data <- list()
-# 
-# ##for loop cleaning the text
-# for(i in 1:length(fh.data)){
-#  clean.fh.data[[i]] <- gsub("-", " ", fh.data[[i]])
-#  clean.fh.data[[i]] <- paste(clean.fh.data[[i]], collapse=c("\n"))
-#  clean.fh.data[[i]] <- removePunctuation(clean.fh.data[[i]])
-#  clean.fh.data[[i]] <- gsub("[\r\n]", " ", clean.fh.data[[i]])
-#  clean.fh.data[[i]] <- gsub("\\s+", " ", clean.fh.data[[i]])
-# }
-# 
-# ##for loop creating a list where each element is a word
-# fh.split.text <- list()
-# for(i in 1:length(clean.fh.data)){
-#  fh.split.text[[i]] <- unlist(strsplit(clean.fh.data[[i]], " "))
-# }
-# 
-# 
-# #Proportion of articles mentioning terrorism
-# 
-# ##for loop searching for terrorism within each list element (where each list element is an article split into each unique word)
-# c.terror.matches <- list()
-# for(i in 1:length(c.split.text)){
-#  c.terror.matches[[i]] <- which(unlist(lapply(c.split.text[[i]], function(x) grepl("terrorism|terrorist", x))))
-# }
-# 
-# 
-# ##for loop denoting whether terrorism is mentioned in a given article (this will be used to subset to only articles mentioning terrorism)
-# c.terrorism.mentioned <- NULL
-# for(i in 1:length(c.terror.matches)){
-#  c.terrorism.mentioned[i] <- as.numeric(sum(c.terror.matches[[i]]) > 0)
-# }
-# 
-# 
-# 
-# ##for loop searching for terrorism within each list element (where each list element is an article split into each unique word)
-# fh.terror.matches <- list()
-# for(i in 1:length(fh.split.text)){
-#  fh.terror.matches[[i]] <- which(unlist(lapply(fh.split.text[[i]], function(x) grepl("terrorism|terrorist", x))))
-# }
-# 
-# 
-# ##for loop denoting whether terrorism is mentioned in a given article (this will be used to subset to only articles mentioning terrorism)
-# fh.terrorism.mentioned <- NULL
-# for(i in 1:length(fh.terror.matches)){
-#  fh.terrorism.mentioned[i] <- as.numeric(sum(fh.terror.matches[[i]]) > 0)
-# }
-# 
-# 
-# df.c <- data.frame(c.terrorism.mentioned = c.terrorism.mentioned, close.dates.charleston.clean, stringsAsFactors=FALSE)
-# c.all.articles.by.date <- as.data.frame(table(df.c$close.dates.charleston.clean))
-# 
-# c.all.articles.by.date$ArticlesMentioningTerrorism <- aggregate(df.c$c.terrorism.mentioned, by=list(Category=df.c$close.dates.charleston.clean), FUN=sum)$x
-# names(c.all.articles.by.date) <- c("date", "TotalArticles", "ArticlesMentioningTerrorism")
-# c.all.articles.by.date$date <- as.Date(c.all.articles.by.date$date)
-# 
-# c.all.articles.by.date$ProportionMentioningTerrorism <- c.all.articles.by.date$ArticlesMentioningTerrorism/c.all.articles.by.date$TotalArticles
-# 
-# 
-# 
-# df.fh <- data.frame(fh.terrorism.mentioned = fh.terrorism.mentioned, close.dates.forthood.clean, stringsAsFactors=FALSE)
-# fh.all.articles.by.date <- as.data.frame(table(df.fh$close.dates.forthood.clean))
-# 
-# fh.all.articles.by.date$ArticlesMentioningTerrorism <- aggregate(df.fh$fh.terrorism.mentioned, by=list(Category=df.fh$close.dates.forthood.clean), FUN=sum)$x
-# names(fh.all.articles.by.date) <- c("date", "TotalArticles", "ArticlesMentioningTerrorism")
-# fh.all.articles.by.date$date <- as.Date(fh.all.articles.by.date$date)
-# 
-# fh.all.articles.by.date$ProportionMentioningTerrorism <- fh.all.articles.by.date$ArticlesMentioningTerrorism/fh.all.articles.by.date$TotalArticles
-# 
-# 
-# plot(seq(nrow(c.all.articles.by.date)), c.all.articles.by.date$ProportionMentioningTerrorism, type="l", lwd=3,
-#     ylab="Proportion of Articles Mentioning Terrorism or Terrorist",
-#     xlab="Weeks After Incident", xaxt="n", main="Proportion of Articles", ylim=c(0, 1.15))
-# lines(seq(nrow(fh.all.articles.by.date)), fh.all.articles.by.date$ProportionMentioningTerrorism, lwd=3, lty=2)
-# axis(side=1, at=c(7, 14), labels = c("1 week", "2 weeks"))
-# legend("topright", legend=c("Charleston", "Fort Hood"), lty=c(1,2), lwd=3)
-# 
-# 
-# 
-# #Proportion mentioning debate over time
-# #for loop searching for whether the word debate is mentioned within each list element (where each list element is an article split into each unique word)
-# c.debate.matches <- list()
-# for(i in 1:length(c.split.text)){
-#  c.debate.matches[[i]] <- which(unlist(lapply(c.split.text[[i]], function(x) grepl("debate", x))))
-# }
-# 
-# 
-# ##for loop denoting whether debate is mentioned in a given article (this will be used to subset to only articles mentioning debate)
-# c.debate.mentioned <- NULL
-# for(i in 1:length(c.debate.matches)){
-#  c.debate.mentioned[i] <- as.numeric(sum(c.debate.matches[[i]]) > 0)
-# }
-# 
-# 
-# ##for loop searching for whether the word debate is mentioned within each list element (where each list element is an article split into each unique word)
-# fh.debate.matches <- list()
-# for(i in 1:length(fh.split.text)){
-#  fh.debate.matches[[i]] <- which(unlist(lapply(fh.split.text[[i]], function(x) grepl("debate", x))))
-# }
-# 
-# 
-# ##for loop denoting whether debate is mentioned in a given article (this will be used to subset to only articles mentioning debate)
-# fh.debate.mentioned <- NULL
-# for(i in 1:length(fh.debate.matches)){
-#  fh.debate.mentioned[i] <- as.numeric(sum(fh.debate.matches[[i]]) > 0)
-# }
-# 
-# df.c$c.debate.mentioned <- c.debate.mentioned
-# df.c$c.debate.mentioned <- c.debate.mentioned
-# c.all.articles.by.date$DebateMentioned <- aggregate(df.c$c.debate.mentioned, by=list(Category=df.c$close.dates.charleston.clean), FUN=sum)$x
-# 
-# c.all.articles.by.date$ProportionMentioningDebate <- c.all.articles.by.date$DebateMentioned/c.all.articles.by.date$TotalArticles
-# 
-# 
-# df.fh$fh.debate.mentioned <- fh.debate.mentioned
-# 
-# fh.all.articles.by.date$DebateMentioned <- aggregate(df.fh$fh.debate.mentioned, by=list(Category=df.fh$close.dates.forthood.clean), FUN=sum)$x
-# 
-# fh.all.articles.by.date$ProportionMentioningDebate <- fh.all.articles.by.date$DebateMentioned/fh.all.articles.by.date$TotalArticles
-# 
-# plot(seq(nrow(c.all.articles.by.date)), c.all.articles.by.date$ProportionMentioningDebate, type="l", lwd=3,
-#     ylab="Proportion of Articles Mentioning Debate",
-#     xlab="Weeks After Incident", xaxt="n", main="Proportion of Articles", ylim=c(0, 1.15))
-# lines(seq(nrow(fh.all.articles.by.date)), fh.all.articles.by.date$ProportionMentioningDebate, lwd=3, lty=2)
-# axis(side=1, at=c(7, 14), labels = c("1 week", "2 weeks"))
-# legend("topright", legend=c("Charleston", "Fort Hood"), lty=c(1,2), lwd=3)
-
-```
 
