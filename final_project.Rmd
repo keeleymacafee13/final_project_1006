@@ -4,11 +4,6 @@ author: "Keeley MacAfee"
 date: "4/8/2019"
 output: pdf_document
 ---
-# Abstract 
-
-In "How the Public Defines Terrorism," Connor Huff and Joshua Kertzer explore one of the most pressing and controversial issues in International Relations--terrorism. The New Oxford American Dictionary defines terrorism as "the unlawful use of violence and intimidation, especially against civilians, in the pursuit of political aims," but details surrounding acts of violence are nuanced, thus leaving substantial room for subjective interpretations of what is terrorism and what is not. Acts of terrorism occur on both large and small scales and can be perpetrated by any individual or group, yet the public does not always see it this way. In this paper, Huff and Kertzer investigate how the public understands terrorism through manipulating various characteristics of an act of violence, such as the method and the motivation. They combine analyses of the media's impact on public perception and results from a survey experiment that asks participants to judge events based on various characteristics to determine how ordinary people define terrorism. 
-
-\pagebreak
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -22,16 +17,17 @@ library(stringr)
 library(xtable)
 library(kableExtra)
 library(stargazer)
+library(dummies)
 library(tidyverse)
 ```
-
 
 
 ```{r data, echo=FALSE, message=FALSE, warning=FALSE}
 #How the Public Defines Terrorism Replication Code
 
 #Loading RData object containing all of the survey data used in the manuscript and supplementary appendix.
-#Loading all Rdata and csv files. 
+#Loading all Rdata and csv files.
+
 load("data_files/Final_Survey_Data.RDATA")
 load("data_files/Terrorism.RDATA")
 load("data_files/full.RDATA")
@@ -42,10 +38,14 @@ lex_nex <- read_csv("data_files/LexNex_Year.csv")
 terrorism_class <- read_csv("data_files/Terror_Classifications.csv")
 search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 
+# NOTE: I was going to use Overleaf or compile my paper as a PDF from this rmd, 
+# but I could not quite figure out how to get everything into overleaf, especially figures
+# and for some reason all of my text outputted as one long line that ran off the page when
+# I knitted it to a PDF, so I put everything into word and saved it as a PDF, but for the final I plan
+# to use Overleaf. 
 ```
 
 
-# Extension
 
 ```{r regressions, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # I am beginning with my extension because I put all of the authors' figures in the appendix.
@@ -57,9 +57,11 @@ search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 # In the author's main analysis code, they change the response weighting variable to be numeric. 
 # I figured since I want to run a regression for my extension that it would make sense to do the same 
 # for the variables of interest. 
+
 as.numeric(dat2$Education)
 as.numeric(dat2$Ideorate)
 
+  
 
 # In particular, I want to look at ideology and education. 
 # I run regressions with the terror binary (1 = Yes, terrorism, 0 = No, not terrrorism) as the 
@@ -68,6 +70,7 @@ as.numeric(dat2$Ideorate)
 # The goal of these models are twofold: 1. show which categories for each characteristic are significant
 # predictors of classifying events as terrorism or not and 2. provide a basis for which I can derive
 # probabilities that each group will define an event as terrorism. 
+
 ideo_reg <- glm(TerrorBinary ~ Ideorate, data = dat2)
 summary(ideo_reg)
 
@@ -76,6 +79,7 @@ summary(education_reg)
 
 # I found this function/step by step process at https://sebastiansauer.github.io/convert_logit2prob/.
 # Very helpful resource!!
+
 logit2prob <-function(logit){
   odds <- exp(logit)
   prob <- odds/(1 + odds)
@@ -83,23 +87,40 @@ logit2prob <-function(logit){
 }
 
 # Once the function is created, I know plug in the models, which now "de-logarithmizes," converts to odds, then converts to probability. (Again, gathered that information from the source above).
+# These probabilities basically back up what the regression coefficients show.
+
+# In the actual paper I show the regression table outputs. I want to find a good way to visualize
+# the probabilities if possible.
+
 id <- logit2prob(coef(ideo_reg))
 edu <- logit2prob(coef(education_reg))
+
 ```
 
-# Ideology
-```{r ideology, warning=FALSE, echo=FALSE, results='asis'}
+
+```{r education, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
 # I struggled with deciding how I wanted to present my results. 
 # One major issue I'm having is that it seems that one entire category either disappears or becomes
 # the constant value in the regression's output? Not sure how to fix this, but it initially threw
-# off my labeling. 
-stargazer(ideo_reg,header = FALSE, dep.var.labels = c("Terror Binary"), title = "Title")
+# off my labeling. Renamed constant to correspond with the ideology coded as 1.
+
+stargazer(education_reg, header = FALSE, covariate.labels = c("High school or GED", "Some college", "2-year college degree", "4-year college degree", "Master's degree", "Doctoral degree", "Professional degree", "Less than high school"),dep.var.labels = c("Terror Binary"), title = "Education")
+
 ```
 
-# Education
-```{r education, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
-# Having the same issue with the constant displaying in the table that I mentioned with ideology. 
-stargazer(education_reg, header = FALSE, dep.var.labels = c("Terror Binary"))
+
+
+```{r ideology, warning=FALSE, echo=FALSE, results='asis'}
+# Having the same issue with the constant displaying in the table that I mentioned with education.
+# Changed the constant in the same fashion. In the final results, I want to try the dummy variable
+# approach.
+
+stargazer(ideo_reg,header = FALSE, covariate.labels = c("Conservative", "Slightly conservative", "Moderate", "Slightly liberal", "Liberal", "Extremely liberal", "Extremely conservative"), dep.var.labels = c("Terror Binary"), title = "Political Ideology")
+
+# Note: My idea for fixing the issue with the 1s in the table is to separate each response and to
+# create dummy variables for each before running the regression. I sort of played around with 
+# this but I could not figure out how to properly do it/don't know if that would even make a difference.
+# Food for thought!
 ```
 
 
@@ -109,26 +130,35 @@ stargazer(education_reg, header = FALSE, dep.var.labels = c("Terror Binary"))
 # In terms of replicating Huff and Kertzer's work, I did pretty much all of the figures and table 2. 
 # I intentionally did not replicate Figure 1, Table 1, or Figure 7. 
 # Figure 1 is simply an example vignette with a description of the type of scenario a 
-# respondent would be presented with (I can type this up myself).
-# Table 1 lists the conjoint treatments by category (the characteristics that are being manipulated). 
+# respondent would be presented with (I could type this up myself if need be).
+# Table 1 lists the conjoint treatments by category (the characteristics that are being manipulated;
+# also could just type this up if needed). 
 # Finally, Figure 7 is a part of the author's applications. Initially I did not intend to replicate 
 # any figures in the application section. However, Table 2 deals with the probability of classification
 # which I am interested in for my extension. Figure 7, on the other hand, deals with the impact of media
 # reporting, which is not as directly related to my extension. 
 
-# But, plotmat2 is necessary for figure replication down the road.
 # Notes: The following code replicates most figures and table 2. Need some revisions for
-# formatting 
-#Converting survey weights to numeric
+# formatting once it is knitted, especially in the appendix figures.
+
+# At first, this code chunk was giving me a lot of issues, and I tried to comment it out.
+# But, plotmat2 is necessary for a lot of the figure replication down the road.
+# I think system.time a few lines down just makes it long/hard to run at first.
+
+
+
+# Converting survey weights to numeric. MTurk samples can be weird, so they weight responses to evenly
+# account for different people/to assure their responses are not affected by skewedness of respondents.
 dat2$webal2 <- as.numeric(dat2$webal2)
 
 
 ## Estimating the Model for Main Analyses
 
-# Do parallel processing - speeds things up
+# Do parallel processing - speeds things up; not quite sure what this does, but it has something
+# to do with their clustered, bootstrapped analysis
 cl <- makeCluster(8,"SOCK")
 
-##Function to cluster bootstrap standard errors -- will be used for all analyses
+# Function to cluster bootstrap standard errors-- will be used for all analyses!!
 clusterBootS2 <- function(dat2){
   i <- sample(unique(dat2$ID_numeric),length(unique(dat2$ID_numeric)),replace=TRUE)
   row.nums <- NULL
@@ -138,7 +168,9 @@ clusterBootS2 <- function(dat2){
   return(dat2[row.nums,])
 }
 
-##Function to run model and then cluster standard errors
+# Function to run model and then cluster standard errors; again, not entirely sure what clustering does
+# Preceptor said not to worry too much about what the nitty gritty of their code/analysis is doing
+# as long as its purpose is just to make sure it all makes sense.
 bootConjoint <- function(...){
   temp <- clusterBootS2(dat2)
   mod.temp <- lm(TerrorBinary ~  Tactic + Casualties + Actor + Ideology + Motivation + Target + Location, weights=webal2, data=temp)
@@ -150,29 +182,32 @@ clusterExport(cl, list("dat2", "bootConjoint", "clusterBootS2"))
 system.time(boot.full2 <- parSapply(cl, rep(1,1500), bootConjoint))
 
 
-#Generating a Matrix where each row is a treatment category, the first column is the coefficient estimate, and the second and fourth columns give the 95% confidence intervals, while the third and fifth give the 90%
+# Generating a Matrix where each row is a treatment category, the first column is the coefficient estimate, and the second and fourth columns give the 95% confidence intervals, while the third and fifth give the 90%
 plot.mat2 <- cbind(apply(boot.full2, 1, mean), apply(boot.full2, 1, quantile, c(0.025)), apply(boot.full2, 1, quantile, c(0.05)), apply(boot.full2, 1, quantile, c(0.95)), apply(boot.full2,1,quantile, c(0.975)))[-1,]
 
-#Now add baseline categories: these will be zeroes on the plot which will allow us to make easy comparisons for the reader
+# Now add baseline categories: these will be zeroes on the plot which will allow us to make easy comparisons for the reader
 plot.mat2b <- rbind(rep(0,5), plot.mat2[1:3,], rep(0,5), plot.mat2[4:6,], rep(0,5), plot.mat2[7:11,], rep(0,5), plot.mat2[12:15,], rep(0,5),
                     plot.mat2[16:19,], rep(0,5), plot.mat2[c(20:27),], rep(0,5), plot.mat2[28:31,])
 
 ```
 
-# Figure 2
+# Extremity of Tactics
 
 ```{r fig2a, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 ##Figure 2A: How Tactics Affect Perceptions that an Incident is Terrorism
 
 
-#making the label for the plot
+# Making the label for the plot
 textLabTactic <- c("Protest", "Hostage Taking", "Shooting", "Bombing")
 
-
+# A lot of the figure producing code seems pretty similar/straightforward, so I won't comment all of them
+# Uses the plotmat2b from the first code chunk and adds details
 par(oma=c(0,1,0,0), mar=c(4,0,1,0)) #Old margins: mar=c(5.1,1.1,4.1,0)
 par(las = 1)
 par(mar = c(5.1, 4.1, .5, .5))
 plot(plot.mat2b[1:length(textLabTactic),1], length(textLabTactic):1, type="n", axes=FALSE, xlab="Average marginal component effect (AMCE)", ylab="",xlim=c(-0.2,0.8))
+# Does this forloop create all the details for every figure? It seems like when I run it the 
+# rest of the code runs and all of the subsequent figures are created?
 for (i in 1:length(textLabTactic)){
   points(plot.mat2b[i,1], length(textLabTactic)-(i-1), pch=16)
   lines(plot.mat2b[i,c(2,5)], rep(length(textLabTactic)-(i-1),2))
@@ -184,12 +219,13 @@ axis(1)
 
 ```
 
+# Severity of Violence 
 
 ```{r fig2b, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 ##Figure 2B: How Casualties Affect Perceptions that an Incident is Terrorism
 textLabFigure1B <- c("No Casualties", "One Casualty", "Two Casualties", "Ten Casualties")
 
-##Casualties Plot
+# Casualties Plot
 #par(oma=c(0,1,0,0), mar=c(4,0,1,0)) 
 par(las = 0.5)
 par(mar = c(4, 4, .5, .5))
@@ -210,7 +246,7 @@ abline(v=0)
 axis(1)
 ```
 
-# Figure 3
+# Location
 
 ```{r fig3a, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 ##Figure 3A: How Location Affects Perceptions that an Incident is Terrorism
@@ -240,7 +276,7 @@ axis(1)
 
 ```
 
-
+# Target
 
 ```{r fig3b, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 ##Figure 3B: How Target Affects Perceptions that an Incident is Terrorism
@@ -284,7 +320,7 @@ axis(1)
 ```
 
 
-# Figure 4
+# The Political Purposiveness of the Perpetrator 
 
 ```{r fig4, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 ##Figure 4: The Political Purposiveness of the Actors
@@ -316,7 +352,7 @@ axis(1)
 
 ```
 
-# Figure 5
+# Social Categorization Effects
 
 ```{r fig5, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 ##Figure 5: The Social Categorization of the Actor
@@ -345,7 +381,8 @@ axis(1)
 
 ```
 
-# Figure 6
+# Motive Attribution Effects
+
 ```{r fig6, echo=FALSE, message=FALSE, warning=FALSE, results="asis"}
 #Figure 6
 ##Figure 6: The Motivation Attributed to the Actor
@@ -376,17 +413,17 @@ axis(1)
 
 \pagebreak
 
-# Table 2
+# The Predicted Probability a Range of Incidents Are Classified as Terrorism Using a Weighted Support Vector Machine Classifier with Lasso Constraints
 
 ```{r tab2, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
-#Table 2
-#Table 2: Predicted Probabilities that 39 incidents are classified as terrorism
+# Table 2: Predicted Probabilities that 39 incidents are classified as terrorism
+# Notes: Need to fix formatting (titles and get rid of message output when knitting).
 
-#Load weighted conjoint model
+# Load weighted conjoint model
 conjoint.mod <- get(load("data_files/SVM Weighted.RData"))
 
 #Get locations of non-zero coefficients:
-#1 constant + tactics treat (4 levels) + casualties treat (4 levels) + actor treat (6 levels) + ideology treat (5 levels) + motivation treat (5 levels) + target treat (9 levels) + location treat (5 levels) = 39 lower order terms
+# 1 constant + tactics treat (4 levels) + casualties treat (4 levels) + actor treat (6 levels) + ideology treat (5 levels) + motivation treat (5 levels) + target treat (9 levels) + location treat (5 levels) = 39 lower order terms
 
 i <- which(conjoint.mod$coefs != 0) #1684 of the 5658 coefficients are significant
 j <- sort(union(i,1:39)) #Add all main effects, even those with 0 effect lower-order terms
@@ -401,8 +438,9 @@ for (i in 1:nrow(events)){
 
 # Now fill the main effect results for each event (Note: this is drawn from Terror_Classifications_Reordered_10182015.csv; these are correct, even though the column ordering is different)
 # I feel like there would have been an easier way to do/code this. For the sake of time,
-# I will not try to figur out what that way is, but it seems like hard coding (?) wasn't necessarily
+# I will not try to figure out what that way is, but it seems like hard coding (?) wasn't necessarily
 # the best solution?
+
 events[,1] <- rep(1,39) #Intercept
 events[,2] <- c(1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1) #Bombing
 events[,3] <- c(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0) #Hostage-taking
@@ -484,34 +522,10 @@ results <- logit(events %*% as.numeric(as.character(probs.data$Coefficient)))
 
 table <- as.data.frame(cbind(rownames(results)[order(results)],round(results[order(results)],digits=2)))
 
+# I want to figure out a way to make this nicer/reformat it unless that seems unnecessary?
 xtable(table)
 
 ```
 
-
-```{r app3, echo=FALSE, message=FALSE, warning=FALSE}
-#APPLICATION III: SAN BERNADINO
-#Predicted Probabilities From "Application II: Demonstrating Framing Effects"
-
-#San Bernardino 
-sanbernadino <- sanbernadino2 <- sanbernadino3 <- sanbernadino4 <- c(rep(0, 39), rep(NA,nrow(probs.data)-39)) #0s for main effects, NAs for interactions
-sanbernadino[c(1,5,8,14,18,23,33,39)] <- 1 #Intercept, shooting, ten casualties, org w foreign ties, Muslim, changing policy, school, US
-sanbernadino2[c(1,5,8,11,18,21,33,39)] <- 1 #Intercept, shooting, ten casualties, individual, muslim,no clear motivation,school,US
-sanbernadino3[c(1,5,8,12,18,21,33,39)] <- 1 #Intercept, shooting, ten casualties, individual w mental illness, muslim,no clear motivation,school,US
-sanbernadino4[c(1,5,8,12,20,21,33,39)] <- 1 #Intercept, shooting, ten casualties, individual w mental illness, unspecified,no clear motivation,school,US
-
-#Now fill in interactions
-sanbernadino <- fillInteractions(sanbernadino,probs.data)
-sanbernadino2 <- fillInteractions(sanbernadino2,probs.data)
-sanbernadino3 <- fillInteractions(sanbernadino3,probs.data)
-sanbernadino4 <- fillInteractions(sanbernadino4,probs.data)
-
-
-logit(sanbernadino %*% as.numeric(as.character(probs.data$Coefficient))) #81.57%
-logit(sanbernadino2 %*% as.numeric(as.character(probs.data$Coefficient))) #50.3%
-logit(sanbernadino3 %*% as.numeric(as.character(probs.data$Coefficient))) #45.9%
-logit(sanbernadino4 %*% as.numeric(as.character(probs.data$Coefficient))) #30.6%
-
-```
 
 
