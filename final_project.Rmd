@@ -46,6 +46,34 @@ search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 ```
 
 
+```{r eduplot, echo=FALSE, message=FALSE, warning=FALSE}
+# I need to emphasize the actual makeup of the data more, especially for 
+# my extension so I make a histogram for each demographic that I plan to use 
+# to visualize how the data is distributed between categories. 
+# Because each ID number appears 8 times (which I note in the paper is interesting because they wrote
+# that each respondent was presented with 7 scenarios; what is the difference between a round
+# and the presentation of a scenario? Not entirely sure and could not find the difference in the
+# article or in the codebook. Sort of unclear) I have to select and distinguish each 
+# respondent so they are only accounted for once in the plot.
+edu_plot <- dat2 %>%
+  select(ID, Education) %>%
+  distinct(ID, Education)
+
+ggplot(edu_plot, aes(x = Education)) + geom_bar()
+
+```
+
+```{r ideoplot, echo=FALSE, message=FALSE, warning=FALSE}
+# Same goes here as for the education plot. 
+ideo_plot <- dat2 %>%
+  select(ID, Ideorate) %>%
+  distinct(ID, Ideorate)
+
+ggplot(ideo_plot, aes(x = Ideorate)) + geom_bar()
+
+```
+
+
 
 ```{r regressions, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # I am beginning with my extension because I put all of the authors' figures in the appendix.
@@ -58,8 +86,12 @@ search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 # I figured since I want to run a regression for my extension that it would make sense to do the same 
 # for the variables of interest. 
 
-as.numeric(dat2$Education)
-as.numeric(dat2$Ideorate)
+
+as.numeric(dat2$Education) %>%
+  summary(dat2$Education)
+
+as.numeric(dat2$Ideorate) %>%
+  summary(dat2$Ideorate)
 
   
 
@@ -96,6 +128,7 @@ id <- logit2prob(coef(ideo_reg))
 edu <- logit2prob(coef(education_reg))
 
 ```
+
 
 
 ```{r education, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
