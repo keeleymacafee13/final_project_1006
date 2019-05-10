@@ -41,8 +41,7 @@ search_trends <- read_csv("data_files/US Search Trends Jan 2015-Jan 2016.csv")
 # NOTE: I was going to use Overleaf or compile my paper as a PDF from this rmd, 
 # but I could not quite figure out how to get everything into overleaf, especially figures
 # and for some reason all of my text outputted as one long line that ran off the page when
-# I knitted it to a PDF, so I put everything into word and saved it as a PDF, but for the final I plan
-# to use Overleaf. 
+# I knitted it to a PDF, so I put everything into word and saved it as a PDF. 
 ```
 
 
@@ -82,6 +81,7 @@ gen_plot <- dat2 %>%
   distinct(ID, Male)
 
 ggplot(gen_plot, aes(x = Male)) + geom_bar(width = 0.3) + xlab("Gender") + ylab("Count") + scale_x_discrete(labels =c("Female", "Male"))
+
 ```
 
 
@@ -123,26 +123,31 @@ summary(education_reg)
 
 gender_reg <- glm(TerrorBinary ~ Male, data = dat2)
 summary(gender_reg)
+```
 
+
+```{r prob, echo = FALSE, warning = FALSE, message = FALSE, include = FALSE}
 
 # I found this function/step by step process at https://sebastiansauer.github.io/convert_logit2prob/.
 # Very helpful resource!!
-# 
-# logit2prob <-function(logit){
-#   odds <- exp(logit)
-#   prob <- odds/(1 + odds)
-#   return(prob)
-# }
-# 
-# # Once the function is created, I know plug in the models, which now "de-logarithmizes," converts to odds, then converts to probability. (Again, gathered that information from the source above).
-# # These probabilities basically back up what the regression coefficients show.
-# 
-# # In the actual paper I show the regression table outputs. I want to find a good way to visualize
-# # the probabilities if possible.
-# 
-# id <- logit2prob(coef(ideo_reg))
-# edu <- logit2prob(coef(education_reg))
 
+logit2prob <-function(logit){
+  odds <- exp(logit)
+  prob <- odds/(1 + odds)
+  return(prob)
+}
+
+# Once the function is created, I know plug in the models, which now "de-logarithmizes," converts to odds, then converts to probability. (Again, gathered that information from the source above).
+# These probabilities basically back up what the regression coefficients show.
+
+# In the actual paper I show the regression table outputs. I want to find a good way to visualize
+# the probabilities if possible.
+
+id <- logit2prob(coef(ideo_reg))
+edu <- logit2prob(coef(education_reg))
+gen <- logit2prob(coef(gender_reg))
+
+# UPDATE: the probabilities didn't make sense once I kept the demographics on a continuous scale, so I excluded them from my analyses. 
 ```
 
 
@@ -228,7 +233,7 @@ summary(hate_bomb_reg)
 
 
 ```{r warning=FALSE, echo=FALSE, results='asis'}
-stargazer(hate_protest_reg, hate_hostage_reg, hate_shoot_reg, hate_bomb_reg, header = FALSE)
+stargazer(hate_protest_reg, hate_hostage_reg, hate_shoot_reg, hate_bomb_reg, header = FALSE, title = "Hatred")
 ```
 
 ```{r govtactic, echo=FALSE, message=FALSE, warning=FALSE}
@@ -267,7 +272,7 @@ summary(gov_bomb_reg)
 
 
 ```{r warning=FALSE, echo=FALSE, results='asis'}
-stargazer(gov_protest_reg, gov_hostage_reg, gov_shoot_reg, gov_bomb_reg, header = FALSE)
+stargazer(gov_protest_reg, gov_hostage_reg, gov_shoot_reg, gov_bomb_reg, header = FALSE, title = "Government Overthrow")
 ```
 
 
