@@ -59,7 +59,9 @@ edu_plot <- dat2 %>%
   select(ID, Education) %>%
   distinct(ID, Education)
 
-ggplot(edu_plot, aes(x = Education)) + geom_bar()
+# Figured out how to rename and rotate tick marks from https://www.datanovia.com/en/blog/ggplot-axis-ticks-set-and-rotate-text-labels/
+
+ggplot(edu_plot, aes(x = Education)) + geom_bar(width = 0.6) + xlab("Education") + ylab("Count") + scale_x_discrete(labels = c("Less than high school", "High school or GED", "Some college", "2-year college degree", "4-year college degree", "Masters degree", "Doctoral degree", "Professional degree")) + theme(axis.text.x = element_text(size = 6, angle = 12))
 
 ```
 
@@ -69,9 +71,19 @@ ideo_plot <- dat2 %>%
   select(ID, Ideorate) %>%
   distinct(ID, Ideorate)
 
-ggplot(ideo_plot, aes(x = Ideorate)) + geom_bar()
+ggplot(ideo_plot, aes(x = Ideorate)) + geom_bar(width = 0.6) + xlab("Ideology") + ylab("Count") + scale_x_discrete(labels = c("Extremely Conservative", "Conservative", "Slightly Conservative", "Moderate", "Slightly Liberal", "Liberal", "Extremely Liberal")) + theme(axis.text.x = element_text(size = 6, angle = 12))
 
 ```
+
+```{r genderplot, echo=FALSE, message=FALSE, warning=FALSE}
+
+gen_plot <- dat2 %>%
+  select(ID, Male) %>%
+  distinct(ID, Male)
+
+ggplot(gen_plot, aes(x = Male)) + geom_bar(width = 0.3) + xlab("Gender") + ylab("Count") + scale_x_discrete(labels =c("Female", "Male"))
+```
+
 
 
 
@@ -86,19 +98,19 @@ ggplot(ideo_plot, aes(x = Ideorate)) + geom_bar()
 # I figured since I want to run a regression for my extension that it would make sense to do the same 
 # for the variables of interest. 
 
+dat2$Education <- as.numeric(dat2$Education)
+dat2$Ideorate <- as.numeric(dat2$Ideorate)
+dat2$Male <- as.numeric(dat2$Male)
 
-as.numeric(dat2$Education) %>%
-  summary(dat2$Education)
-
-as.numeric(dat2$Ideorate) %>%
-  summary(dat2$Ideorate)
+# summary(dat2$Education)
+# summary(dat2$Ideorate)
+# summary(dat2$Male)
 
   
-
-# In particular, I want to look at ideology and education. 
+# In particular, I want to look at ideology, education, gender. 
 # I run regressions with the terror binary (1 = Yes, terrorism, 0 = No, not terrrorism) as the 
 # dependent variable using ideology rating (1-7: extremely conservative-extremely liberal)
-# and education (1-8: least to most educated) in separate models. 
+# education (1-8: least to most educated) and gender (1 = Male, 0 = female) in separate models. 
 # The goal of these models are twofold: 1. show which categories for each characteristic are significant
 # predictors of classifying events as terrorism or not and 2. provide a basis for which I can derive
 # probabilities that each group will define an event as terrorism. 
@@ -109,26 +121,29 @@ summary(ideo_reg)
 education_reg <- glm(TerrorBinary ~ Education, data = dat2)
 summary(education_reg)
 
+gender_reg <- glm(TerrorBinary ~ Male, data = dat2)
+summary(gender_reg)
+
+
 # I found this function/step by step process at https://sebastiansauer.github.io/convert_logit2prob/.
 # Very helpful resource!!
-
-logit2prob <-function(logit){
-  odds <- exp(logit)
-  prob <- odds/(1 + odds)
-  return(prob)
-}
-
-# Once the function is created, I know plug in the models, which now "de-logarithmizes," converts to odds, then converts to probability. (Again, gathered that information from the source above).
-# These probabilities basically back up what the regression coefficients show.
-
-# In the actual paper I show the regression table outputs. I want to find a good way to visualize
-# the probabilities if possible.
-
-id <- logit2prob(coef(ideo_reg))
-edu <- logit2prob(coef(education_reg))
+# 
+# logit2prob <-function(logit){
+#   odds <- exp(logit)
+#   prob <- odds/(1 + odds)
+#   return(prob)
+# }
+# 
+# # Once the function is created, I know plug in the models, which now "de-logarithmizes," converts to odds, then converts to probability. (Again, gathered that information from the source above).
+# # These probabilities basically back up what the regression coefficients show.
+# 
+# # In the actual paper I show the regression table outputs. I want to find a good way to visualize
+# # the probabilities if possible.
+# 
+# id <- logit2prob(coef(ideo_reg))
+# edu <- logit2prob(coef(education_reg))
 
 ```
-
 
 
 ```{r education, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
@@ -137,7 +152,7 @@ edu <- logit2prob(coef(education_reg))
 # the constant value in the regression's output? Not sure how to fix this, but it initially threw
 # off my labeling. Renamed constant to correspond with the ideology coded as 1.
 
-stargazer(education_reg, header = FALSE, covariate.labels = c("High school or GED", "Some college", "2-year college degree", "4-year college degree", "Master's degree", "Doctoral degree", "Professional degree", "Less than high school"),dep.var.labels = c("Terror Binary"), title = "Education")
+stargazer(education_reg, header = FALSE, title = "Education")
 
 ```
 
@@ -148,12 +163,111 @@ stargazer(education_reg, header = FALSE, covariate.labels = c("High school or GE
 # Changed the constant in the same fashion. In the final results, I want to try the dummy variable
 # approach.
 
-stargazer(ideo_reg,header = FALSE, covariate.labels = c("Conservative", "Slightly conservative", "Moderate", "Slightly liberal", "Liberal", "Extremely liberal", "Extremely conservative"), dep.var.labels = c("Terror Binary"), title = "Political Ideology")
+stargazer(ideo_reg, header = FALSE, title = "Political Ideology")
 
 # Note: My idea for fixing the issue with the 1s in the table is to separate each response and to
 # create dummy variables for each before running the regression. I sort of played around with 
 # this but I could not figure out how to properly do it/don't know if that would even make a difference.
 # Food for thought!
+```
+
+
+```{r gender, warning=FALSE, echo=FALSE, results='asis'}
+# UPDATE: I added gender as a demographic to examine. Instead of my original thought of 
+# making dummy variables, I kept education and ideology on a continuous scale (per Mark's suggestion);
+# A little bit different with gender because it's binary. 
+stargazer(gender_reg, header = FALSE, title = "Gender")
+
+```
+
+
+```{r hatetactic, echo=FALSE, message=FALSE, warning=FALSE}
+# I really liked Mark's suggestion of controlling for a certain situation. 
+# Huff and Kertzer find that motivation and tactics had the largest effect on respondents. They have
+# a motivation tactic interaction variable. One thing I found really interesting in their discussion is
+# how heavily a motivation of hatred seemed to impact respondents' interpretations of the event. 
+# I wanted to look at the effect of hatred as a motivation, paired with each tactic, through the lens
+# of political ideology.
+# Terrorism doesn't always have to be motivated by politics (or at least people don't seem to think so)
+# but how does political ideology impact, if at all, how people perceive an apolitical motivation. 
+# Is there a distinction? Nowadays, everything becomes political, so perhaps this does too.
+# I want to compare this to a highly political motivation of government overthrow.
+
+hatred_protest <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Hatred, Protest")
+
+hatred_hostage <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Hatred, Hostage Taking")
+
+hatred_shooting <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Hatred, Shooting")
+
+hatred_bomb <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Hatred, Bombing")
+
+```
+
+
+```{r hatetacticreg, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+hate_protest_reg <- glm(TerrorBinary ~ Ideorate, data = hatred_protest)
+summary(hate_protest_reg)
+
+hate_hostage_reg <- glm(TerrorBinary ~ Ideorate, data = hatred_hostage)
+summary(hate_hostage_reg)
+
+hate_shoot_reg <- glm(TerrorBinary ~ Ideorate, data = hatred_shooting)
+summary(hate_shoot_reg)
+
+hate_bomb_reg <- glm(TerrorBinary ~ Ideorate, data = hatred_bomb)
+summary(hate_bomb_reg)
+```
+
+
+```{r warning=FALSE, echo=FALSE, results='asis'}
+stargazer(hate_protest_reg, hate_hostage_reg, hate_shoot_reg, hate_bomb_reg, header = FALSE)
+```
+
+```{r govtactic, echo=FALSE, message=FALSE, warning=FALSE}
+gov_protest <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Overthrow, Protest")
+
+gov_hostage <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Overthrow, Hostage Taking")
+
+gov_shooting <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Overthrow, Shooting")
+
+gov_bomb <- dat2 %>%
+  select(Motivation_Tactic_Interaction, Ideorate, TerrorBinary) %>%
+  filter(Motivation_Tactic_Interaction == "Motivation Overthrow, Bombing")
+
+```
+
+
+```{r govtacticreg, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+gov_protest_reg <- glm(TerrorBinary ~ Ideorate, data = gov_protest)
+summary(gov_protest_reg)
+
+gov_hostage_reg <- glm(TerrorBinary ~ Ideorate, data = gov_hostage)
+summary(gov_hostage_reg)
+
+gov_shoot_reg <- glm(TerrorBinary ~ Ideorate, data = gov_shooting)
+summary(gov_shoot_reg)
+
+gov_bomb_reg <- glm(TerrorBinary ~ Ideorate, data = gov_bomb)
+summary(gov_bomb_reg)
+```
+
+
+```{r warning=FALSE, echo=FALSE, results='asis'}
+stargazer(gov_protest_reg, gov_hostage_reg, gov_shoot_reg, gov_bomb_reg, header = FALSE)
 ```
 
 
